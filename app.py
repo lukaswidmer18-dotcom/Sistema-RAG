@@ -28,8 +28,8 @@ _DESIGN_CSS = """
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
 
-html, body, [class*="css"] {
-    font-family: 'Inter', 'SofiaSans', Arial, sans-serif;
+.stApp, .stApp *:not([data-testid="stIconMaterial"]) {
+    font-family: 'Inter', 'SofiaSans', Arial, sans-serif !important;
 }
 
 .stApp {
@@ -45,6 +45,11 @@ h1, h2, h3 {
     color: #141413 !important;
     font-weight: 600 !important;
     letter-spacing: -0.02em !important;
+}
+
+h1 {
+    font-size: 3.4rem !important;
+    line-height: 1.05 !important;
 }
 
 .eyebrow {
@@ -67,55 +72,71 @@ h1, h2, h3 {
     flex-shrink: 0;
 }
 
-.stButton button[kind="primary"] {
-    background-color: #141413;
-    color: #F3F0EE;
-    border: 1.5px solid #141413;
-    border-radius: 20px;
-    font-weight: 500;
-    letter-spacing: -0.01em;
-    box-shadow: none;
+[data-testid="stBaseButton-primary"] {
+    background-color: #141413 !important;
+    color: #F3F0EE !important;
+    border: 1.5px solid #141413 !important;
+    border-radius: 20px !important;
+    font-weight: 600 !important;
+    letter-spacing: -0.01em !important;
+    padding: 10px 28px !important;
+    box-shadow: none !important;
 }
-.stButton button[kind="primary"]:hover {
-    background-color: #262627;
-    border-color: #262627;
-    color: #F3F0EE;
+[data-testid="stBaseButton-primary"]:hover {
+    background-color: #262627 !important;
+    border-color: #262627 !important;
+    color: #F3F0EE !important;
 }
-.stButton button[kind="primary"]:disabled {
-    background-color: #D1CDC7;
-    border-color: #D1CDC7;
-    color: #FCFBFA;
+[data-testid="stBaseButton-primary"]:disabled {
+    background-color: #D1CDC7 !important;
+    border-color: #D1CDC7 !important;
+    color: #FCFBFA !important;
 }
 
-.stButton button[kind="secondary"] {
-    background-color: #FFFFFF;
-    color: #141413;
-    border: 1.5px solid #141413;
-    border-radius: 20px;
-    font-weight: 500;
+[data-testid="stBaseButton-secondary"] {
+    background-color: #FFFFFF !important;
+    color: #141413 !important;
+    border: 1.5px solid #141413 !important;
+    border-radius: 20px !important;
+    font-weight: 500 !important;
+    padding: 10px 28px !important;
 }
 
 [class*="st-key-audit-card"] {
     background-color: #FCFBFA;
     border-radius: 24px !important;
-    border: none !important;
-    box-shadow: rgba(0, 0, 0, 0.08) 0px 24px 48px 0px;
+    border: 1px solid rgba(20, 20, 19, 0.05) !important;
+    box-shadow: rgba(0, 0, 0, 0.10) 0px 24px 48px 0px;
     padding: 8px;
 }
 
-[data-testid="stMetric"] {
-    background-color: #FCFBFA;
-    border-radius: 20px;
-    padding: 16px 20px;
+.stat-strip {
+    display: flex;
+    gap: 48px;
+    margin: 8px 0 4px 0;
 }
-[data-testid="stMetricLabel"] {
+.stat-strip .stat + .stat {
+    border-left: 1px solid #E8E2DA;
+    padding-left: 48px;
+}
+.stat-label {
     text-transform: uppercase;
     letter-spacing: 0.04em;
     font-size: 12px;
+    font-weight: 700;
     color: #696969;
+    margin-bottom: 4px;
 }
-[data-testid="stMetricValue"] {
+.stat-value {
+    font-size: 2.4rem;
+    font-weight: 600;
     color: #141413;
+    letter-spacing: -0.02em;
+    line-height: 1.1;
+    max-width: 320px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 
 [data-testid="stExpander"] {
@@ -128,6 +149,17 @@ h1, h2, h3 {
     background-color: #FCFBFA;
     border-radius: 24px;
     box-shadow: rgba(0, 0, 0, 0.04) 0px 4px 24px 0px;
+}
+
+[data-testid="stChatInput"] {
+    border-radius: 999px !important;
+    border: 1.5px solid #141413 !important;
+    background-color: #FFFFFF !important;
+    overflow: hidden;
+}
+[data-testid="stChatInputSubmitButton"] {
+    border-radius: 50% !important;
+    background-color: #141413 !important;
 }
 
 hr {
@@ -144,6 +176,15 @@ st.markdown(_DESIGN_CSS, unsafe_allow_html=True)
 
 def _eyebrow(label: str) -> None:
     st.markdown(f'<div class="eyebrow">{label}</div>', unsafe_allow_html=True)
+
+
+def _stat_strip(stats: list[tuple[str, str]]) -> None:
+    items = "".join(
+        f'<div class="stat"><div class="stat-label">{label}</div>'
+        f'<div class="stat-value">{value}</div></div>'
+        for label, value in stats
+    )
+    st.markdown(f'<div class="stat-strip">{items}</div>', unsafe_allow_html=True)
 
 
 @st.cache_resource(show_spinner=False)
@@ -214,11 +255,15 @@ def _render_header() -> None:
     st.title("Plataforma de Auditoria de Contratos")
     st.caption("RAG local (ChromaDB) + Groq (Llama 3 70B) — respostas restritas ao conteúdo do contrato enviado.")
 
-    col1, col2, col3 = st.columns(3)
-    col1.metric("Documento", st.session_state["indexed_filename"] or "Nenhum")
-    col2.metric("Blocos indexados", st.session_state["indexed_chunk_count"])
+    document_label = st.session_state["indexed_filename"] or "Nenhum"
     status = "Pronto" if st.session_state["indexed_filename"] else "Aguardando upload"
-    col3.metric("Status", status)
+    _stat_strip(
+        [
+            ("Documento", document_label),
+            ("Blocos indexados", str(st.session_state["indexed_chunk_count"])),
+            ("Status", status),
+        ]
+    )
     st.divider()
 
 
