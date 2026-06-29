@@ -46,8 +46,21 @@ Veja `.env.example`.
 
 ## Como rodar os testes
 
-Este escopo inicial não inclui suíte de testes automatizados. Para validar manualmente:
-`streamlit run app.py`, subir um PDF de teste e conferir indexação, Auditoria Expressa e chat.
+```bash
+pip install -r requirements-dev.txt
+pytest -v --html=tests/report.html --self-contained-html --cov=pipeline --cov=llm --cov-report=term-missing
+```
+
+Cobre `chunk_text` (split por cláusula, janela deslizante, regressão do bug de chunks
+degenerados), extração de PDF, índice/busca round-trip no ChromaDB real, e o guard
+anti-alucinação do `llm.py`. Os testes de `TestAskQuestionLive` chamam a API real da Groq e
+são pulados automaticamente se `GROQ_API_KEY` não estiver definida.
+
+`tests/report.html` (relatório navegável) e `tests/test_run.log` são gerados a cada execução
+e ficam fora do git (`.gitignore`) — são artefatos de execução, não código-fonte.
+
+Para validar manualmente a UI: `streamlit run app.py`, subir um PDF e conferir indexação,
+Auditoria Expressa e chat.
 
 ## Decisões de arquitetura
 
